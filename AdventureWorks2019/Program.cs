@@ -1,10 +1,15 @@
 using AdventureWorks2019.Application;
-using AdventureWorks2019.Application.Data;
 using AdventureWorks2019.DataAccess;
 using AdventureWorks2019.DataAccess.Repositories;
 using AdventureWorks2019.Domain.Abstractions;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
+using AdventureWorks2019.API.Extensions;
+using AdventureWorks2019.Application.Services;
+
+IConfiguration configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .Build();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +18,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(AppMappingProfile), typeof(AppMappingProfile2));
 builder.Services.AddTransient<IEmployeeRepo, EmployeeRepo>();
-builder.Services.AddTransient<IDataEmployeeService, DataEmployeeService>();
+builder.Services.AddTransient<IEmployeeService, EmployeeService>();
+builder.Services.AddTransient<IJwtProvider, JwtProvider>();
+
+builder.Services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
+
+builder.Services.AddApiAuthentication(configuration);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -41,13 +52,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.UseCors(x =>
     {
-        x.WithHeaders().AllowAnyHeader();
+        x.WithHeaders().AllowAnyHeader().AllowCredentials();
         x.WithOrigins("http://localhost:3000");
         x.WithMethods().AllowAnyMethod();
     }

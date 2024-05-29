@@ -14,8 +14,9 @@ const poppins = Poppins (
 
 const items = [
   { key: "Home", label: <Link href={"/"}>Home</Link> },
-  { key: "Table Ag-Grid", label: <Link href={"/table_agrid/1"}>Table AG Grid</Link> },
+  { key: "Table Ag-Grid", label: <Link href={"/getEmployees/1"}>Table AG Grid</Link> },
   { key: "Table Antd", label: <Link href={"/table_antd"}>Table Antd</Link> },
+  { key: "Login", label: <Link href={"/login"}>Login</Link> },
 ];
 
 export default function RootLayout({ children})  {

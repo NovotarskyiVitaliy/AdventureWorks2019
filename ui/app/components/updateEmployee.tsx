@@ -1,62 +1,64 @@
 'use client';
+
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Radio } from "antd";
+import { InitObvject } from "../infrastructure/initObject"
 
-export interface Employee
-{
-    businessEntityId : string;
-    firstName : string;
-    lastName : string;
-    departmentId : string;
+export interface Employee {
+    businessEntityId: string;
+    firstName: string;
+    lastName: string;
+    departmentId: string;
 }
 
-interface prop
-{
-    visible : any;
-    setModalVisible : any;
+interface prop {
+    visible: any;
+    setModalVisible: any;
     employee: Employee
 }
 
-export const CreateForm = (props: prop) => {
+export const UpdateEmployee = (props: prop) => {
     const { visible, setModalVisible, employee } = props;
 
 
     const [form] = Form.useForm();
 
     const saveData = async () => {
-        const employePost = { 
-                firstName: form.getFieldValue("firstName"), 
-                lastName: form.getFieldValue("lastName"), 
-                businessEntityId: employee.businessEntityId,
-            };
+        const employePost = {
+            firstName: form.getFieldValue("firstName"),
+            lastName: form.getFieldValue("lastName"),
+            businessEntityId: employee.businessEntityId,
+        };
 
-        const id = employee.businessEntityId; 
-            
+        const id = employee.businessEntityId;
+
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-            body: JSON.stringify( employePost )
+            body: JSON.stringify(employePost)
         };
 
-        const response = await fetch('http://localhost:5124/Person', requestOptions);
+
+        console.log(requestOptions);
+
+        const response = await fetch(`${InitObvject.domain}/api/Person/UpdateEmployee`, requestOptions);
         const data = await response.json();
     };
 
     form.setFieldsValue({
         firstName: employee.firstName,
         lastName: employee.lastName,
-    }); 
-    
+    });
+
 
     const handleSave = (values) => {
         console.log('Success:', values);
         form
             .validateFields()
-            .then (() => 
-                {
-                    saveData();
-                    setModalVisible(false);
-                }
+            .then(() => {
+                saveData();
+                setModalVisible(false);
+            }
             )
             .catch((info) => {
                 console.log("Validate Failed:", info);
@@ -66,7 +68,7 @@ export const CreateForm = (props: prop) => {
     return (
         <Modal
             visible={visible}
-            title="Person's detaile"
+            title="Employee detaile"
             okText="Save"
             onCancel={() => {
                 setModalVisible(false);
@@ -78,14 +80,16 @@ export const CreateForm = (props: prop) => {
                     label="First Name"
                     name="firstName"
                     rules={[
-                        { required: true, message: "Please input the first name of the person!" }
+                        { required: true, message: "Please input the first name of the Employee!" }
                     ]}
                 >
-                    <Input/>
+                    <Input />
                 </Form.Item>
 
-                <Form.Item name="lastName" label="Last Name">
-                    <Input/>
+                <Form.Item name="lastName" label="Last Name" rules={[
+                    { required: true, message: "Please input the last name of the Employee!" }
+                ]}>
+                    <Input />
                 </Form.Item>
 
                 <Form.Item name="type" label="Type">

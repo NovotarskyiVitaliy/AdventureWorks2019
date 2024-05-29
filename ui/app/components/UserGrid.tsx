@@ -3,13 +3,23 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import CustomUserCell from './customerUserCell';
-import { CreateForm, Employee } from "@/app/components/CreateForm";
+import { UpdateEmployee, Employee } from "./updateEmployee";
+import useCookie from 'react-use-cookie';
+import { redirect } from 'next/navigation'
 
 interface prop {
   url: string;
 }
 
 export default function UserGrid(props: prop) {
+
+  const [userToken] = useCookie('myToken', '0');
+
+  const requestOptions = {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json; charset=UTF-8;', 'Authorization': `${userToken}` },
+  };
+
 
   const setValues = (e) => {
     setModalVisible(true);
@@ -40,15 +50,14 @@ export default function UserGrid(props: prop) {
   }, []);
 
   useEffect(() => {
-    console.log(props.url);
-
-    try {
-      fetch(props.url)
-        .then((res) => res.json())
-        .then((d) => setData(d))
-    } catch (error) {
-      console.log(error);
+    if (userToken === "0") {
+      redirect('/login');
     }
+
+    fetch(props.url, requestOptions)
+      .then((res) => res.json())
+      .then((d) => setData(d))
+      .catch(error => alert("Use login page to authorize"))
   }, []);
 
   const [persons, setData] = useState([]);
@@ -59,7 +68,7 @@ export default function UserGrid(props: prop) {
 
   return (
     <div className="ag-theme-alpine" style={{ height: '600px' }}>
-      <CreateForm
+      <UpdateEmployee
         visible={visible}
         setModalVisible={setModalVisible}
         employee={employee}
