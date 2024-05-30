@@ -5,7 +5,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { Button, Form, Input, Radio } from "antd";
 import useCookie from 'react-use-cookie';
-import { InitObvject } from "../infrastructure/initObject"
+import { InitObvject } from "../../infrastructure/initObject"
 
 export default function Login() {
 
@@ -21,7 +21,11 @@ export default function Login() {
       method: 'POST',
     };
 
-    const response = await fetch(`${InitObvject.domain}/api/Person/Login?user=${form.getFieldValue("user")}&password=${form.getFieldValue("password")}`, requestOptions);
+    const urlAddress = `${InitObvject.domain}/api/Person/Login?user=${form.getFieldValue("user")}&password=${form.getFieldValue("password")}`;
+
+    console.log(urlAddress);
+
+    const response = await fetch(urlAddress, requestOptions);
 
     const data = await response.json();
 
@@ -33,6 +37,7 @@ export default function Login() {
 
   const onChange = () =>
     {
+      //  alert(form.getFieldValue("user"));
       setSubmitDisabled(form.getFieldValue("user").length === 0 || form.getFieldValue("password").length ===0);
     }
 
