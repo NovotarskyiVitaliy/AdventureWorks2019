@@ -1,4 +1,3 @@
-version: '3.8'
 name: adventureworks2019
 services:
   api:
@@ -9,23 +8,33 @@ services:
     ports:
       - "5124:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - DefaultConnection=Server=sql,1433;Database=AdventureWorks2019;User=sa;Password=My_StrongPassword62
+      ConnectionStrings__DefaultConnection: "Server=sqlAdventureWorks,1433;Database=AdventureWorks2019;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      JwtOptions__SecretKey: ${JWT_SECRET_KEY}
+      Auth__User: ${AUTH_USER}
+      Auth__Password: ${AUTH_PASSWORD}
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sql
+    container_name: sqlAdventureWorks
     environment:
-      MSSQL_SA_PASSWORD: "My_StrongPassword62"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
       ACCEPT_EULA: "Y"
-    volumes: 
-      - sqlserver-data:/my/file/path
+    volumes:
+      - sqlserver-data:/var/opt/mssql
     ports:
-      - "1433:1433" 
+      - "1433:1433"
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   nextjs:
     build:
-      context: /ui
+      context: ./ui
       dockerfile: Dockerfile
     ports:
       - "3000:3000"

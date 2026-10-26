@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Radio } from "antd";
 import { InitObvject } from "../infrastructure/initObject"
+import useCookie from 'react-use-cookie';
 
 export interface Employee {
     businessEntityId: string;
@@ -22,6 +23,7 @@ export const UpdateEmployee = (props: prop) => {
 
 
     const [form] = Form.useForm();
+    const [userToken] = useCookie('myToken', '0');
 
     const saveData = async () => {
         const employePost = {
@@ -34,7 +36,7 @@ export const UpdateEmployee = (props: prop) => {
 
         const requestOptions = {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+            headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Authorization': `Bearer ${userToken}` },
             body: JSON.stringify(employePost)
         };
 
@@ -42,7 +44,9 @@ export const UpdateEmployee = (props: prop) => {
         console.log(requestOptions);
 
         const response = await fetch(`${InitObvject.domain}/api/Person/UpdateEmployee`, requestOptions);
-        const data = await response.json();
+        if (!response.ok) {
+            alert("Update failed");
+        }
     };
 
     form.setFieldsValue({

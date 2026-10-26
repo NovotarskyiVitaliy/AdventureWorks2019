@@ -1,15 +1,9 @@
+using AdventureWorks2019.API.Extensions;
 using AdventureWorks2019.Application;
+using AdventureWorks2019.Application.Services;
 using AdventureWorks2019.DataAccess;
 using AdventureWorks2019.DataAccess.Repositories;
 using AdventureWorks2019.Domain.Abstractions;
-using Microsoft.AspNetCore.Diagnostics;
-using System.Net;
-using AdventureWorks2019.API.Extensions;
-using AdventureWorks2019.Application.Services;
-
-IConfiguration configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .Build();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,9 +15,15 @@ builder.Services.AddTransient<IEmployeeRepo, EmployeeRepo>();
 builder.Services.AddTransient<IEmployeeService, EmployeeService>();
 builder.Services.AddTransient<IJwtProvider, JwtProvider>();
 
-builder.Services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
+builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Auth"));
 
-builder.Services.AddApiAuthentication(configuration);
+builder.Services.AddApiAuthentication(builder.Configuration);
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:3000"];
+
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
@@ -31,38 +31,21 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    app.UseExceptionHandler(options =>
+}
+else
+{
+    app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
     {
-        options.Run(async context =>
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "text/html";
-            var exceptionObject = context.Features.Get<IExceptionHandlerFeature>();
-            if (null != exceptionObject)
-            {
-                var errorMessage = $"<b>Exception Error: {exceptionObject.Error.Message}</b> {exceptionObject.Error.StackTrace}";
-                await context.Response.WriteAsync(errorMessage).ConfigureAwait(false);
-
-                Console.WriteLine(errorMessage);
-            }
-        });
-    });
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(new { error = "Internal server error" });
+    }));
 }
 
-app.UseHttpsRedirection();
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseCors(x =>
-    {
-        x.WithHeaders().AllowAnyHeader().AllowCredentials();
-        x.WithOrigins("http://localhost:3000");
-        x.WithMethods().AllowAnyMethod();
-    }
-);
 
 app.Run();

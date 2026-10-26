@@ -17,7 +17,7 @@ export default function UserGrid(props: prop) {
 
   const requestOptions = {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json; charset=UTF-8;', 'Authorization': `${userToken}` },
+    headers: { 'Content-Type': 'application/json; charset=UTF-8;', 'Authorization': `Bearer ${userToken}` },
   };
 
 
