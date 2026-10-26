@@ -1,41 +1,35 @@
-using AdventureWorks2019.Application;
 using AdventureWorks2019.Application.Services;
 using AdventureWorks2019.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace AdventureWorks2019.API.Controllers;
 
-[Route("api/[controller]")]
+public record LoginRequest(string User, string Password);
 
-public class PersonController(ILogger<PersonController> logger, IEmployeeService service) : ControllerBase
+[ApiController]
+[Authorize]
+[Route("api/[controller]")]
+public class PersonController(IEmployeeService service) : ControllerBase
 {
-    [HttpGet]
-    [Route("GetEmployees")]
-    [Authorize]
+    [HttpGet("GetEmployees")]
     public async Task<IActionResult> GetEmployees(int? dId)
     {
         return Ok(await service.GetEmployees(dId));
     }
 
-    [HttpPost]
-    [Route("UpdateEmployee")]
-    public async Task<string> UpdateEmployee([FromBody]Employee employee)
+    [HttpPost("UpdateEmployee")]
+    public async Task<IActionResult> UpdateEmployee([FromBody] Employee employee)
     {
-        await service.UpdateEmployee(employee);
-
-        return await Task.FromResult("ok");
+        return await service.UpdateEmployee(employee) ? NoContent() : NotFound();
     }
 
-    [HttpPost]
-    [Route("Login")]
-    public IResult Login(string user, string password)
+    [AllowAnonymous]
+    [HttpPost("Login")]
+    public IActionResult Login([FromBody] LoginRequest request)
     {
-        var token =  service.Login(user, new PasswordHasher().Generate(password));
+        var token = service.Login(request.User, request.Password);
 
-        HttpContext.Response.Cookies.Append("myToken", token);
-
-        return Results.Ok(token);
+        return token is null ? Unauthorized() : Ok(new { token });
     }
 }

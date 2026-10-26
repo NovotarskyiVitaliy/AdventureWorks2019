@@ -1,4 +1,4 @@
-﻿using AdventureWorks2019.DataAccess.Entities;
+using AdventureWorks2019.DataAccess.Entities;
 using AdventureWorks2019.Domain.Models;
 using AutoMapper;
 
@@ -8,7 +8,6 @@ public class AppMappingProfile : Profile
 {
     public AppMappingProfile()
     {
-        CreateMap<EmployeeEntity, Employee>()
-            .ForMember(dest => dest.FirstName,x => x.MapFrom(y =>$"{y.FirstName}"));
+        CreateMap<EmployeeEntity, Employee>();
     }
 }

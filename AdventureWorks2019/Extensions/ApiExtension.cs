@@ -1,8 +1,7 @@
-﻿using AdventureWorks2019.Application;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using AdventureWorks2019.Application;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AdventureWorks2019.API.Extensions
 {
@@ -12,8 +11,11 @@ namespace AdventureWorks2019.API.Extensions
         {
             var jwtOptions = configuration.GetSection("JwtOptions").Get<JwtOptions>();
 
+            if (string.IsNullOrWhiteSpace(jwtOptions?.SecretKey) || jwtOptions.SecretKey.Length < 32)
+                throw new InvalidOperationException("JwtOptions:SecretKey must be configured and at least 32 characters long");
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new()
                     {
@@ -22,16 +24,6 @@ namespace AdventureWorks2019.API.Extensions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
-                    };
-
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            //context.Token = context.Request.Cookies["myToken"];
-                            context.Token = context.Request.Headers["Authorization"];
-                            return Task.CompletedTask;
-                        }
                     };
                 });
 

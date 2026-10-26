@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Local secrets / data
+.env
+.idea/
+.sqlserver-data/
+sqlserver-data/

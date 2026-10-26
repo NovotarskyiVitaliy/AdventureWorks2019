@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.next/
+.git/
+.idea/
+.vs/
+.db/
+.sqlserver-data/
+sqlserver-data/
+ui/
+.env

@@ -19,17 +19,20 @@ export default function Login() {
 
     const requestOptions = {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: form.getFieldValue("user"), password: form.getFieldValue("password") }),
     };
 
-    const urlAddress = `${InitObvject.domain}/api/Person/Login?user=${form.getFieldValue("user")}&password=${form.getFieldValue("password")}`;
+    const response = await fetch(`${InitObvject.domain}/api/Person/Login`, requestOptions);
 
-    console.log(urlAddress);
-
-    const response = await fetch(urlAddress, requestOptions);
+    if (!response.ok) {
+      alert("Invalid user or password");
+      return;
+    }
 
     const data = await response.json();
 
-    setUserToken(data);
+    setUserToken(data.token);
 
     alert("You have authorized!");
   };
@@ -58,7 +61,7 @@ export default function Login() {
           rules={[
             { required: true, message: "Please input the user password" }
           ]}>
-          <Input onChange={onChange}/>
+          <Input.Password onChange={onChange}/>
         </Form.Item>
 
         <Form.Item name="submit" label="Submit" >
